@@ -1,0 +1,29 @@
+name: Build APK
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip source
+        run: unzip -o MkhoaApp.zip -d extracted_src
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Build if Gradle project exists
+        run: |
+          if [ -f "extracted_src/gradlew" ]; then
+            cd extracted_src && chmod +x gradlew && ./gradlew assembleDebug
+          elif [ -f "gradlew" ]; then
+            chmod +x gradlew && ./gradlew assembleDebug
+          else
+            echo "Không tìm thấy gradlew trong MkhoaApp.zip"
+            ls -la extracted_src
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-output
+          path: "**/outputs/apk/debug/*.apk"
+          
