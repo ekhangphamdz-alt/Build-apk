@@ -11,19 +11,21 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Build if Gradle project exists
+      - name: Build project
         run: |
-          if [ -f "extracted_src/gradlew" ]; then
-            cd extracted_src && chmod +x gradlew && ./gradlew assembleDebug
-          elif [ -f "gradlew" ]; then
-            chmod +x gradlew && ./gradlew assembleDebug
+          GRADLEW_PATH=$(find extracted_src -name "gradlew" -type f | head -n 1)
+          if [ -n "$GRADLEW_PATH" ]; then
+            PROJECT_DIR=$(dirname "$GRADLEW_PATH")
+            echo "Found project at: $PROJECT_DIR"
+            cd "$PROJECT_DIR" && chmod +x gradlew && ./gradlew assembleDebug
           else
-            echo "Không tìm thấy gradlew trong MkhoaApp.zip"
-            ls -la extracted_src
+            echo "Không tìm thấy gradlew trong MkhoaApp.zip. Nội dung bên trong:"
+            find extracted_src -maxdepth 3
             exit 1
           fi
       - uses: actions/upload-artifact@v4
         with:
           name: apk-output
           path: "**/outputs/apk/debug/*.apk"
+          
           
